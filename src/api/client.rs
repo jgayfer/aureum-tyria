@@ -1,5 +1,6 @@
 use anyhow::Result;
-use serde::Deserialize;
+
+use super::model::{ItemListings, ItemPrice};
 
 const BASE_URL: &str = "https://api.guildwars2.com/v2";
 
@@ -31,37 +32,10 @@ impl Client {
     }
 }
 
-#[derive(Debug, Deserialize, PartialEq)]
-pub struct ItemPrice {
-    pub id: u32,
-    pub whitelisted: bool,
-    pub buys: PriceTotal,
-    pub sells: PriceTotal,
-}
-
-#[derive(Debug, Deserialize, PartialEq)]
-pub struct PriceTotal {
-    pub quantity: u32,
-    pub unit_price: u32,
-}
-
-#[derive(Debug, Deserialize, PartialEq)]
-pub struct ItemListings {
-    pub id: u32,
-    pub buys: Vec<Listing>,
-    pub sells: Vec<Listing>,
-}
-
-#[derive(Debug, Deserialize, PartialEq)]
-pub struct Listing {
-    pub listings: u32,
-    pub unit_price: u32,
-    pub quantity: u32,
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::api::model::{Listing, PriceTotal};
     use mockito::mock;
 
     #[tokio::test]
