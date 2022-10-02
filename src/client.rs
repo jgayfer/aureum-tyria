@@ -20,6 +20,11 @@ impl Client {
         Self { base_url }
     }
 
+    async fn item_listings(self, item_id: u32) -> Result<ItemListings> {
+        let url = format!("{}/commerce/listings/{}", self.base_url, item_id);
+        Ok(reqwest::get(url).await?.json::<ItemListings>().await?)
+    }
+
     async fn item_prices(self, item_id: u32) -> Result<ItemPrice> {
         let url = format!("{}/commerce/prices/{}", self.base_url, item_id);
         Ok(reqwest::get(url).await?.json::<ItemPrice>().await?)
@@ -40,10 +45,66 @@ pub struct PriceTotal {
     pub unit_price: u32,
 }
 
+#[derive(Debug, Deserialize, PartialEq)]
+pub struct ItemListings {
+    pub id: u32,
+    pub buys: Vec<Listing>,
+    pub sells: Vec<Listing>,
+}
+
+#[derive(Debug, Deserialize, PartialEq)]
+pub struct Listing {
+    pub listings: u32,
+    pub unit_price: u32,
+    pub quantity: u32,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use mockito::mock;
+
+    #[tokio::test]
+    async fn test_item_listings() {
+        let _m = mock("GET", "/commerce/listings/1")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(
+                r#"
+                {
+                    "id": 1,
+                    "buys": [
+                        { "listings": 5, "unit_price":  10, "quantity": 500 }
+                    ],
+                    "sells": [
+                        { "listings": 12, "unit_price":  25, "quantity": 1000 }
+                    ]
+                }
+                "#,
+            )
+            .create();
+
+        let item_listings = Client::new(mockito::server_url())
+            .item_listings(1)
+            .await
+            .unwrap();
+
+        let expected_listings = ItemListings {
+            id: 1,
+            buys: vec![Listing {
+                listings: 5,
+                unit_price: 10,
+                quantity: 500,
+            }],
+            sells: vec![Listing {
+                listings: 12,
+                unit_price: 25,
+                quantity: 1000,
+            }],
+        };
+
+        assert_eq!(expected_listings, item_listings);
+    }
 
     #[tokio::test]
     async fn test_item_prices() {
