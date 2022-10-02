@@ -20,12 +20,12 @@ impl Default for Client {
 
 impl Client {
     /// Build a new [Client] with a different base URL.
-    fn new(base_url: String) -> Self {
+    pub fn new(base_url: String) -> Self {
         Self { base_url }
     }
 
     /// Get current buy and sell listings for an item from the trading post.
-    async fn item_listings(self, item_id: u32) -> Result<ItemListings> {
+    pub async fn item_listings(self, item_id: u32) -> Result<ItemListings> {
         let url = format!("{}/commerce/listings/{}", self.base_url, item_id);
         Ok(reqwest::get(url).await?.json::<ItemListings>().await?)
     }
@@ -34,7 +34,7 @@ impl Client {
     ///
     /// For more detailed information about the distribution of list prices, use
     /// [Client::item_listings].
-    async fn item_prices(self, item_id: u32) -> Result<ItemPrice> {
+    pub async fn item_prices(self, item_id: u32) -> Result<ItemPrice> {
         let url = format!("{}/commerce/prices/{}", self.base_url, item_id);
         Ok(reqwest::get(url).await?.json::<ItemPrice>().await?)
     }
