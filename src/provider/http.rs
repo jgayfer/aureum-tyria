@@ -43,10 +43,6 @@ impl From<ItemListings> for ItemPrice {
     fn from(item_listings: ItemListings) -> Self {
         Self {
             item_id: item_listings.id,
-            supply: total_quantity(&item_listings.sells),
-            demand: total_quantity(&item_listings.buys),
-            buy_price: first_price(&item_listings.buys),
-            sell_price: first_price(&item_listings.sells),
             buy_listings: list_entires(item_listings.buys),
             sell_listings: list_entires(item_listings.sells),
         }
@@ -61,17 +57,6 @@ impl From<Listing> for ListEntry {
             quantity: listing.quantity,
         }
     }
-}
-
-/// Get the total quantity of items in a collection of listings.
-fn total_quantity(listings: &Vec<Listing>) -> u32 {
-    listings.iter().map(|listing| listing.quantity).sum()
-}
-
-/// Get the first price from a collection of listings.
-/// Listings are sorted by price in the API, so the first value is always what we want.
-fn first_price(listings: &Vec<Listing>) -> u32 {
-    listings.get(0).map_or(0, |listing| listing.unit_price)
 }
 
 /// Map a collection of listings from the API into our "owned" listing models.
@@ -113,10 +98,6 @@ mod tests {
 
         let expected_item_price = ItemPrice {
             item_id: 1,
-            supply: 11,
-            demand: 750,
-            buy_price: 10,
-            sell_price: 25,
             buy_listings: vec![
                 ListEntry {
                     listing_count: 5,
@@ -141,40 +122,6 @@ mod tests {
                     quantity: 1,
                 },
             ],
-        };
-
-        assert_eq!(expected_item_price, item_price);
-    }
-
-    #[tokio::test]
-    async fn test_for_item_no_listings() {
-        let _m = mock("GET", "/commerce/listings/1")
-            .with_status(200)
-            .with_header("content-type", "application/json")
-            .with_body(
-                r#"
-                {
-                    "id": 1,
-                    "buys": [],
-                    "sells": []
-                }
-                "#,
-            )
-            .create();
-
-        let client = Client::new(mockito::server_url());
-        let source = HttpPriceSource::new(client);
-
-        let item_price = source.for_item(1).await.unwrap();
-
-        let expected_item_price = ItemPrice {
-            item_id: 1,
-            supply: 0,
-            demand: 0,
-            buy_price: 0,
-            sell_price: 0,
-            buy_listings: vec![],
-            sell_listings: vec![],
         };
 
         assert_eq!(expected_item_price, item_price);
