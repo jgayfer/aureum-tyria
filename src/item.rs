@@ -15,12 +15,18 @@ pub struct ListEntry {
 impl ItemPrice {
     /// Total number of units for sale.
     pub fn supply(&self) -> u32 {
-        total_quantity(&self.sell_listings)
+        self.sell_listings
+            .iter()
+            .map(|listing| listing.quantity)
+            .sum()
     }
 
     /// Total number of units ordered.
     pub fn demand(&self) -> u32 {
-        total_quantity(&self.buy_listings)
+        self.buy_listings
+            .iter()
+            .map(|listing| listing.quantity)
+            .sum()
     }
 
     /// Highest buy order price for the item.
@@ -40,11 +46,6 @@ impl ItemPrice {
             .min()
             .unwrap_or(0)
     }
-}
-
-/// Get the total quantity of items in a collection of listings.
-fn total_quantity(list_entries: &Vec<ListEntry>) -> u32 {
-    list_entries.iter().map(|listing| listing.quantity).sum()
 }
 
 #[cfg(test)]
