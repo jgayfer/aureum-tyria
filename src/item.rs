@@ -25,24 +25,26 @@ impl ItemPrice {
 
     /// Highest buy order price for the item.
     pub fn buy_price(&self) -> u32 {
-        first_price(&self.buy_listings)
+        self.buy_listings
+            .iter()
+            .map(|listing| listing.unit_price)
+            .max()
+            .unwrap_or(0)
     }
 
     /// Lowest sell order price for the item.
     pub fn sell_price(&self) -> u32 {
-        first_price(&self.sell_listings)
+        self.sell_listings
+            .iter()
+            .map(|listing| listing.unit_price)
+            .min()
+            .unwrap_or(0)
     }
 }
 
 /// Get the total quantity of items in a collection of listings.
 fn total_quantity(list_entries: &Vec<ListEntry>) -> u32 {
     list_entries.iter().map(|listing| listing.quantity).sum()
-}
-
-/// Get the first price from a collection of listings.
-/// Listings are sorted by price in the API, so the first value is always what we want.
-fn first_price(list_entires: &Vec<ListEntry>) -> u32 {
-    list_entires.get(0).map_or(0, |listing| listing.unit_price)
 }
 
 #[cfg(test)]
